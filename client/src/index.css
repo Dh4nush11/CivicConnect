@@ -1,0 +1,208 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-paper-50 text-brand-900 font-sans antialiased selection:bg-brand-200 selection:text-brand-900;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+  html.dark body {
+    @apply bg-brand-950 text-paper-100;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display tracking-tightest text-brand-950;
+  }
+  html.dark h1,
+  html.dark h2,
+  html.dark h3,
+  html.dark h4,
+  html.dark h5,
+  html.dark h6 {
+    @apply text-white;
+  }
+  a {
+    @apply text-brand-800 underline-offset-4 hover:underline;
+  }
+  html.dark a {
+    @apply text-brand-100;
+  }
+  *:focus-visible {
+    outline: none;
+  }
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [role='button']:focus-visible,
+  [tabindex]:focus-visible {
+    @apply ring-focus rounded-md;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  .surface {
+    @apply rounded-lg border border-paper-200 bg-white shadow-card;
+  }
+  html.dark .surface {
+    @apply border-white/10 bg-brand-900 shadow-none;
+  }
+  .surface-soft {
+    @apply rounded-lg border border-paper-200/60 bg-paper-50;
+  }
+  html.dark .surface-soft {
+    @apply border-white/5 bg-white/[0.02];
+  }
+  .divider-x {
+    @apply h-px w-full bg-paper-200;
+  }
+  html.dark .divider-x {
+    @apply bg-white/10;
+  }
+  .label {
+    @apply block text-[0.8rem] font-semibold uppercase tracking-wide text-brand-700;
+  }
+  html.dark .label {
+    @apply text-paper-200;
+  }
+  .input-base {
+    @apply block w-full rounded-md-plus border border-paper-300 bg-white px-3 py-2.5 text-[0.92rem] text-brand-900 placeholder:text-paper-300 shadow-sm transition hover:border-brand-400 focus:border-brand-600 focus:outline-none focus:ring-4 focus:ring-brand-900/10;
+  }
+  html.dark .input-base {
+    @apply border-white/10 bg-brand-900 text-paper-50 placeholder:text-white/30 hover:border-white/20 focus:border-brand-300 focus:ring-brand-200/20;
+  }
+  .input-error {
+    @apply border-red-400 focus:border-red-500 focus:ring-red-500/20;
+  }
+  .page-max {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-badge border border-paper-200 bg-white px-3 py-1 text-[0.78rem] font-medium text-brand-800 transition;
+  }
+  html.dark .chip {
+    @apply border-white/10 bg-brand-900 text-paper-100;
+  }
+  .chip-active {
+    @apply border-brand-800 bg-brand-900 text-white shadow-sm;
+  }
+  html.dark .chip-active {
+    @apply border-brand-200 bg-brand-100 text-brand-900;
+  }
+}
+
+.leaflet-container {
+  @apply w-full h-full rounded-lg;
+  background: #f3f4f6;
+}
+.leaflet-tile-pane {
+  filter: grayscale(0.05) saturate(0.95) contrast(1.02) brightness(1.02);
+}
+.leaflet-control-attribution {
+  @apply text-[10px] opacity-70 !bg-white/80 backdrop-blur;
+}
+.cc-pin {
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  border: 3px solid white;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(15, 23, 42, 0.08);
+  transform: translate(-50%, -50%);
+  position: relative;
+}
+.cc-pin::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 9999px;
+  border: 2px solid currentColor;
+  opacity: 0.2;
+}
+.cc-pin-reported {
+  background-color: #1d4ed8;
+  color: #1d4ed8;
+}
+.cc-pin-in-progress {
+  background-color: #d97706;
+  color: #d97706;
+}
+.cc-pin-resolved {
+  background-color: #047857;
+  color: #047857;
+}
+.cc-pin-rejected {
+  background-color: #b91c1c;
+  color: #b91c1c;
+}
+.cc-pin-duplicate {
+  background-color: #7c3aed;
+  color: #7c3aed;
+}
+.cc-pin-drop {
+  width: 28px;
+  height: 28px;
+  background: #0b2545;
+  color: #0b2545;
+  box-shadow: 0 0 0 4px rgba(11, 37, 69, 0.15), 0 4px 10px rgba(15, 23, 42, 0.35);
+}
+.cc-pin-drop::after {
+  display: none;
+}
+.cc-evidence-pin {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 2px solid white;
+  border-radius: 9999px;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.4);
+}
+.cc-evidence-pin-device {
+  background: #d97706;
+}
+.cc-evidence-pin-photo {
+  background: #7c3aed;
+}
+.leaflet-popup-content-wrapper {
+  border-radius: 0.6rem;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.15);
+  padding: 2px;
+}
+.leaflet-popup-content {
+  @apply m-0 font-sans;
+  margin: 10px 12px !important;
+  line-height: 1.4;
+}
+.toast-body {
+  @apply pointer-events-auto flex items-start gap-3 rounded-md-plus border border-paper-200 bg-white px-4 py-3 shadow-pop animate-slide-up;
+}
+html.dark .toast-body {
+  @apply border-white/10 bg-brand-900;
+}
+.skeleton {
+  @apply bg-skeleton animate-shimmer rounded-md;
+}
+.btn-loading {
+  opacity: 0.75;
+  pointer-events: none;
+}
