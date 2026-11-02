@@ -98,7 +98,7 @@ The app can run as one free Render web service, with MongoDB Atlas Free for data
 
 1. Create a MongoDB Atlas Free cluster and database user. Allow connections from Render (Atlas `0.0.0.0/0` accommodates Render's changing outbound IPs; use a strong database password and restrict network access where your hosting plan supports stable egress IPs).
 2. Create a Cloudinary Free account and note its cloud name, API key, and API secret.
-3. Push this project to a private GitHub repository, then create a Render Blueprint from that repository and select the included `render.yaml`.
+3. Push this project to GitHub, then create a Render Blueprint from that repository and select the included `render.yaml`.
 4. Set the prompted `MONGO_URI`, `CLIENT_URL` (the deployed `https://...onrender.com` URL), and Cloudinary credentials in Render. Render generates `JWT_SECRET`. Keep all credentials in the hosting dashboard, never in source control or chat.
 5. The Blueprint disables email verification by default so registration works without SMTP. To require verified emails, configure SMTP environment variables and set `EMAIL_VERIFICATION_REQUIRED=true`.
 6. Create the initial admin account by running `npm run seed --prefix server` from a trusted local checkout with `MONGO_URI`, `ADMIN_NAME`, `ADMIN_EMAIL`, and `ADMIN_PASSWORD` set. The admin email must match the configured primary administrator email. Optional seed citizen/officer accounts can also be created; officer seeding requires working SMTP to deliver its credentials.
