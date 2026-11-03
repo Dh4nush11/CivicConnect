@@ -369,6 +369,14 @@ const forgotPassword = async (req, res, next) => {
       });
     } catch (mailErr) {
       console.error('[forgotPassword] Email send failed:', mailErr.message);
+      user.passwordResetToken = undefined;
+      user.passwordResetExpires = undefined;
+      await user.save({ validateBeforeSave: false });
+      return res.status(502).json({
+        success: false,
+        message: 'We could not send the password reset email. Please try again later.',
+        code: 'EMAIL_DELIVERY_FAILED',
+      });
     }
 
     res.status(200).json({ success: true, message: GENERIC_MSG });

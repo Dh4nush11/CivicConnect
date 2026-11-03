@@ -4,7 +4,9 @@ const host = process.env.SMTP_HOST || process.env.EMAIL_HOST;
 const port = parseInt(process.env.SMTP_PORT || process.env.EMAIL_PORT || '587', 10);
 const user = process.env.SMTP_USER || process.env.EMAIL_USER;
 const pass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
-const from = process.env.EMAIL_FROM || `"CivicConnect" <${user || 'no-reply@civicconnect.local'}>`;
+const RESEND_API_URL = 'https://api.resend.com/emails';
+const getFrom = () =>
+  process.env.EMAIL_FROM || `"CivicConnect" <${user || 'no-reply@civicconnect.local'}>`;
 
 let testAccountPromise = null;
 const getEtherealTestAccount = async () => {
@@ -24,6 +26,9 @@ const getTransport = async () => {
       port,
       secure: port === 465,
       auth: { user, pass },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
     });
     return cachedTransport;
   }
@@ -50,19 +55,68 @@ const getTransport = async () => {
   return cachedTransport;
 };
 
+const getPlainText = (html) =>
+  html
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const sendWithResend = async ({ to, subject, html, text }) => {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) throw new Error('RESEND_API_KEY is not configured');
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  let response;
+  try {
+    response = await fetch(RESEND_API_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'User-Agent': 'CivicConnect/1.0',
+      },
+      body: JSON.stringify({
+        from: getFrom(),
+        to,
+        subject,
+        html,
+        text: text || getPlainText(html),
+      }),
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  const responseBody = await response.text();
+  let result;
+  try {
+    result = JSON.parse(responseBody);
+  } catch {
+    result = null;
+  }
+
+  if (!response.ok) {
+    const detail = result?.message || result?.name || `HTTP ${response.status}`;
+    throw new Error(`Resend email send failed: ${detail}`);
+  }
+
+  return { ...result, provider: 'resend' };
+};
+
 const sendEmail = async ({ to, subject, html, text }) => {
+  if (process.env.RESEND_API_KEY) {
+    return sendWithResend({ to, subject, html, text });
+  }
+
   const transport = await getTransport();
   const info = await transport.sendMail({
-    from,
+    from: getFrom(),
     to,
     subject,
     html,
-    text:
-      text ||
-      html
-        .replace(/<[^>]+>/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim(),
+    text: text || getPlainText(html),
   });
 
   if (transport._isEthereal) {

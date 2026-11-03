@@ -13,6 +13,7 @@ const errorHandler = require('./middleware/errorHandler');
 connectDB().then(() => require('./utils/backgroundChecks').startBackgroundChecks());
 
 const app = express();
+app.set('trust proxy', 1);
 
 const configuredOrigins = (process.env.CLIENT_URL || '')
   .split(',')
