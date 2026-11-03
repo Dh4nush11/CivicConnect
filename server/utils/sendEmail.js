@@ -5,6 +5,7 @@ const port = parseInt(process.env.SMTP_PORT || process.env.EMAIL_PORT || '587', 
 const user = process.env.SMTP_USER || process.env.EMAIL_USER;
 const pass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
 const RESEND_API_URL = 'https://api.resend.com/emails';
+const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
 const getFrom = () =>
   process.env.EMAIL_FROM || `"CivicConnect" <${user || 'no-reply@civicconnect.local'}>`;
 
@@ -61,28 +62,19 @@ const getPlainText = (html) =>
     .replace(/\s+/g, ' ')
     .trim();
 
-const sendWithResend = async ({ to, subject, html, text }) => {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) throw new Error('RESEND_API_KEY is not configured');
-
+const postEmail = async (url, headers, body, provider) => {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
   let response;
   try {
-    response = await fetch(RESEND_API_URL, {
+    response = await fetch(url, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
         'User-Agent': 'CivicConnect/1.0',
+        ...headers,
       },
-      body: JSON.stringify({
-        from: getFrom(),
-        to,
-        subject,
-        html,
-        text: text || getPlainText(html),
-      }),
+      body: JSON.stringify(body),
       signal: controller.signal,
     });
   } finally {
@@ -99,13 +91,51 @@ const sendWithResend = async ({ to, subject, html, text }) => {
 
   if (!response.ok) {
     const detail = result?.message || result?.name || `HTTP ${response.status}`;
-    throw new Error(`Resend email send failed: ${detail}`);
+    throw new Error(`${provider} email send failed: ${detail}`);
   }
 
-  return { ...result, provider: 'resend' };
+  return { ...result, provider };
+};
+
+const sendWithResend = ({ to, subject, html, text }) =>
+  postEmail(
+    RESEND_API_URL,
+    { Authorization: `Bearer ${process.env.RESEND_API_KEY}` },
+    {
+      from: getFrom(),
+      to,
+      subject,
+      html,
+      text: text || getPlainText(html),
+    },
+    'resend'
+  );
+
+const sendWithBrevo = ({ to, subject, html, text }) => {
+  const sender = getFrom();
+  const match = sender.match(/^(.*?)\s*<([^<>]+)>$/);
+  const senderName = match ? match[1].replace(/^["']|["']$/g, '').trim() : 'CivicConnect';
+  const senderEmail = match ? match[2].trim() : sender.trim();
+
+  return postEmail(
+    BREVO_API_URL,
+    { 'api-key': process.env.BREVO_API_KEY },
+    {
+      sender: { name: senderName || 'CivicConnect', email: senderEmail },
+      to: [{ email: to }],
+      subject,
+      htmlContent: html,
+      textContent: text || getPlainText(html),
+    },
+    'Brevo'
+  );
 };
 
 const sendEmail = async ({ to, subject, html, text }) => {
+  if (process.env.BREVO_API_KEY) {
+    return sendWithBrevo({ to, subject, html, text });
+  }
+
   if (process.env.RESEND_API_KEY) {
     return sendWithResend({ to, subject, html, text });
   }
